@@ -4,13 +4,27 @@ use cosmwasm_std::Decimal;
 #[cw_serde]
 pub struct InstantiateMsg {
     /// The cw4 contract to assign voting power based on.
-    pub cw4: String,
+    pub cw721_staked: String,
+}
+
+#[cw_serde]
+pub enum StakeChangeHook {
+    // Staking contract hooks.
+    // ref: `dao-contracts/contracts/voting/dao-voting-cw721-staked/src/hooks.rs`
+    Stake {
+        addr: String,
+        token_id: String,
+    },
+    Unstake {
+        addr: String,
+        token_ids: Vec<String>,
+    },
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
     SetPreference { preference: Decimal },
-    MemberChangedHook { diffs: Vec<cw4::MemberDiff> },
+    StakeChangeHook(StakeChangeHook),
 }
 
 #[cw_serde]

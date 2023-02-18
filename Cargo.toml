@@ -38,8 +38,10 @@ cw4 = "1.0.1"
 schemars = "0.8.10"
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.31" }
-cw-paginate = { version = "*", git = "https://github.com/DA0-DA0/dao-contracts.git" }
+dao-interface = { version = "*", git = "https://github.com/DA0-DA0/dao-contracts.git" }
 
 [dev-dependencies]
+anyhow = { version = "1.0.51"}
 cw-multi-test = "0.16.2"
-cw4-group = "1.0.1"
+dao-voting-cw721-staked = { version = "*", git = "https://github.com/DA0-DA0/dao-contracts.git" }
+cw721-base = "0.16.0"

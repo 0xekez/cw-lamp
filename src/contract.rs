@@ -5,12 +5,11 @@ use cosmwasm_std::{
     Response, StdResult, Storage,
 };
 use cw2::set_contract_version;
-use cw4::MemberDiff;
 use cw_storage_plus::Bound;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::{CW4, CWA, PREFERENCES};
+use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakeChangeHook};
+use crate::state::{CW721_STAKED, CWA, PREFERENCES};
 
 const CONTRACT_NAME: &str = "crates.io:liesurely-lamp";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -23,68 +22,75 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-    let cw4 = deps.api.addr_validate(&msg.cw4)?;
-    CW4.save(deps.storage, &cw4)?;
+    let cw721_staked = deps.api.addr_validate(&msg.cw721_staked)?;
+    CW721_STAKED.save(deps.storage, &cw721_staked)?;
     Ok(Response::default()
         .add_attribute("method", "instantiate")
-        .add_attribute("cw4", cw4))
+        .add_attribute("dao_voting_cw721_staked", cw721_staked))
 }
 
 pub fn member_weight(
     storage: &dyn Storage,
     querier: &QuerierWrapper,
     who: &Addr,
+    height: u64,
 ) -> StdResult<u64> {
-    let cw4 = CW4.load(storage)?;
-    let response: cw4::MemberResponse = querier.query_wasm_smart(
-        &cw4,
-        &cw4::Cw4QueryMsg::Member {
-            addr: who.to_string(),
-            at_height: None,
+    let voting = CW721_STAKED.load(storage)?;
+    let response: dao_interface::voting::VotingPowerAtHeightResponse = querier.query_wasm_smart(
+        &voting,
+        &dao_interface::voting::Query::VotingPowerAtHeight {
+            address: who.to_string(),
+            height: Some(height),
         },
     )?;
-    Ok(response.weight.unwrap_or_default())
+    Ok(response.power.u128() as u64)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::SetPreference { preference } => {
-            let weight = member_weight(deps.storage, &deps.querier, &info.sender)?;
+            let weight =
+                member_weight(deps.storage, &deps.querier, &info.sender, env.block.height)?;
             if let Some(preference) = PREFERENCES.may_load(deps.storage, &info.sender)? {
                 CWA.remove(deps.storage, weight, preference)?;
             }
+            PREFERENCES.save(deps.storage, &info.sender, &preference)?;
             CWA.add(deps.storage, weight, preference)?;
             Ok(Response::default()
                 .add_attribute("method", "set_preference")
                 .add_attribute("preference", preference.to_string()))
         }
-        ExecuteMsg::MemberChangedHook { diffs } => {
-            let cw4 = CW4.load(deps.storage)?;
-            if info.sender != cw4 {
-                return Err(ContractError::NotCw4(info.sender));
-            }
-            for MemberDiff {
-                key: member,
-                old,
-                new,
-            } in diffs
-            {
-                let member = deps.api.addr_validate(&member)?;
-                if let Some(preference) = PREFERENCES.may_load(deps.storage, &member)? {
-                    let old = old.unwrap_or_default();
-                    let new = new.unwrap_or_default();
-
-                    CWA.remove(deps.storage, old, preference)?;
+        ExecuteMsg::StakeChangeHook(StakeChangeHook::Stake { addr, .. }) => {
+            let member = deps.api.addr_validate(&addr)?;
+            let weight = member_weight(deps.storage, &deps.querier, &member, env.block.height + 1)?;
+            if let Some(preference) = PREFERENCES.may_load(deps.storage, &member)? {
+                if weight != 0 {
+                    let old = weight - 1;
+                    let new = weight;
+                    if old != 0 {
+                        CWA.remove(deps.storage, old, preference)?;
+                    }
                     CWA.add(deps.storage, new, preference)?;
                 }
             }
-            Ok(Response::default().add_attribute("method", "member_changed_hook"))
+            Ok(Response::default())
+        }
+        ExecuteMsg::StakeChangeHook(StakeChangeHook::Unstake { addr, token_ids }) => {
+            let member = deps.api.addr_validate(&addr)?;
+            let weight = member_weight(deps.storage, &deps.querier, &member, env.block.height + 1)?;
+            if let Some(preference) = PREFERENCES.may_load(deps.storage, &member)? {
+                let old = weight + token_ids.len() as u64;
+                let new = weight;
+                CWA.remove(deps.storage, old, preference)?;
+                CWA.add(deps.storage, new, preference)?;
+            }
+            Ok(Response::default())
         }
     }
 }

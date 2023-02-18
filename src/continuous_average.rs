@@ -18,6 +18,9 @@ impl<'a> ContinuousWeightedAverage<'a> {
     }
 
     pub fn add(&self, storage: &mut dyn Storage, weight: u64, value: Decimal) -> StdResult<()> {
+        if weight == 0 {
+            return Ok(());
+        }
         match self.0.may_load(storage)? {
             Some(State { total, average }) => {
                 let total = total + weight;
@@ -52,18 +55,23 @@ impl<'a> ContinuousWeightedAverage<'a> {
             .may_load(storage)?
             .expect("can not remove that which has not been added");
         // total * (average - weight * value / total) / (total - weight)
-        let average = Decimal::from_atomics(total, 0).unwrap()
-            * (average
-                - Decimal::from_atomics(weight, 0).unwrap() * value
-                    / Decimal::from_atomics(total, 0).unwrap())
-            / Decimal::from_atomics(total - weight, 0).unwrap();
-        self.0.save(
-            storage,
-            &State {
-                total: total - weight,
-                average,
-            },
-        )
+        if total == weight {
+            self.0.remove(storage);
+            Ok(())
+        } else {
+            let average = Decimal::from_atomics(total, 0).unwrap()
+                * (average
+                    - Decimal::from_atomics(weight, 0).unwrap() * value
+                        / Decimal::from_atomics(total, 0).unwrap())
+                / Decimal::from_atomics(total - weight, 0).unwrap();
+            self.0.save(
+                storage,
+                &State {
+                    total: total - weight,
+                    average,
+                },
+            )
+        }
     }
 
     pub fn average(&self, storage: &dyn Storage) -> StdResult<Decimal> {

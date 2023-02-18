@@ -207,16 +207,27 @@ dependencies = [
 
 [[package]]
 name = "cw-controllers"
-version = "1.0.1"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91440ce8ec4f0642798bc8c8cb6b9b53c1926c6dadaf0eed267a5145cd529071"
+checksum = "24bd6738c3fd59c87d2f84911c1cad1e4f2d1c58ecaa6e52549b4f78f4ed6f07"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-storage-plus 1.0.1",
- "cw-utils",
+ "cw-storage-plus 0.16.0",
+ "cw-utils 0.16.0",
  "schemars",
  "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "cw-hooks"
+version = "2.0.3"
+source = "git+https://github.com/DA0-DA0/dao-contracts.git#a3f74df68b34b1f0fee5c4b51850d2eadce764d2"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 0.16.0",
  "thiserror",
 ]
 
@@ -229,7 +240,7 @@ dependencies = [
  "anyhow",
  "cosmwasm-std",
  "cw-storage-plus 1.0.1",
- "cw-utils",
+ "cw-utils 1.0.1",
  "derivative",
  "itertools",
  "k256",
@@ -274,17 +285,45 @@ dependencies = [
 
 [[package]]
 name = "cw-utils"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6a84c6c1c0acc3616398eba50783934bd6c964bad6974241eaee3460c8f5b26"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw2 0.16.0",
+ "schemars",
+ "semver",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "cw-utils"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c80e93d1deccb8588db03945016a292c3c631e6325d349ebb35d2db6f4f946f7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw2",
+ "cw2 1.0.1",
  "schemars",
  "semver",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "cw2"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91398113b806f4d2a8d5f8d05684704a20ffd5968bf87e3473e1973710b884ad"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 0.16.0",
+ "schemars",
+ "serde",
 ]
 
 [[package]]
@@ -314,20 +353,86 @@ dependencies = [
 ]
 
 [[package]]
-name = "cw4-group"
-version = "1.0.1"
+name = "cw721"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f12cb74c646062a2568e7fbb1db3ce0a264c64e669c2ff30cc105c84ba6477eb"
+checksum = "94a1ea6e6277bdd6dfc043a9b1380697fe29d6e24b072597439523658d21d791"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-utils 0.16.0",
+ "schemars",
+ "serde",
+]
+
+[[package]]
+name = "cw721-base"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77518e27431d43214cff4cdfbd788a7508f68d9b1f32389e6fce513e7eaccbef"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 0.16.0",
+ "cw-utils 0.16.0",
+ "cw2 0.16.0",
+ "cw721",
+ "schemars",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "cw721-controllers"
+version = "2.0.3"
+source = "git+https://github.com/DA0-DA0/dao-contracts.git#a3f74df68b34b1f0fee5c4b51850d2eadce764d2"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 0.16.0",
+ "cw-utils 0.16.0",
+ "thiserror",
+]
+
+[[package]]
+name = "dao-interface"
+version = "2.0.3"
+source = "git+https://github.com/DA0-DA0/dao-contracts.git#a3f74df68b34b1f0fee5c4b51850d2eadce764d2"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-hooks",
+ "cw2 0.16.0",
+ "dao-macros",
+]
+
+[[package]]
+name = "dao-macros"
+version = "2.0.3"
+source = "git+https://github.com/DA0-DA0/dao-contracts.git#a3f74df68b34b1f0fee5c4b51850d2eadce764d2"
+dependencies = [
+ "cosmwasm-schema",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "dao-voting-cw721-staked"
+version = "2.0.3"
+source = "git+https://github.com/DA0-DA0/dao-contracts.git#a3f74df68b34b1f0fee5c4b51850d2eadce764d2"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-controllers",
- "cw-storage-plus 1.0.1",
- "cw-utils",
- "cw2",
- "cw4",
- "schemars",
- "serde",
+ "cw-paginate",
+ "cw-storage-plus 0.16.0",
+ "cw-utils 0.16.0",
+ "cw2 0.16.0",
+ "cw721",
+ "cw721-controllers",
+ "dao-interface",
+ "dao-macros",
  "thiserror",
 ]
 
@@ -540,14 +645,16 @@ checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
 name = "liesurely-lamp"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-multi-test",
- "cw-paginate",
  "cw-storage-plus 1.0.1",
- "cw2",
+ "cw2 1.0.1",
  "cw4",
- "cw4-group",
+ "cw721-base",
+ "dao-interface",
+ "dao-voting-cw721-staked",
  "schemars",
  "serde",
  "thiserror",
